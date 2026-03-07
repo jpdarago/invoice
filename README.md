@@ -69,6 +69,51 @@ invoice generate --import path/to/data.json \
     --output duck-invoice.pdf
 ```
 
+### Metadata
+
+Add structured key-value data to your invoice with `--metadata` (or `-m`). Each
+entry uses `key=value` format:
+
+```bash
+invoice generate --from "Dream, Inc." --to "Imagine, Inc." \
+    --item "Rubber Duck" --quantity 2 --rate 25 \
+    --metadata "Bank=HSBC" \
+    --metadata "IBAN=DE89 3704 0044 0532 0130 00" \
+    --metadata "Tax ID=DE123456789"
+```
+
+Metadata entries are rendered in a **DETAILS** section on the PDF, sorted
+alphabetically by key.
+
+In JSON/YAML config files, metadata is a plain object:
+
+```json
+{
+    "from": "Dream, Inc.",
+    "to": "Imagine, Inc.",
+    "metadata": {
+        "Bank": "HSBC",
+        "IBAN": "DE89 3704 0044 0532 0130 00",
+        "Tax ID": "DE123456789"
+    }
+}
+```
+
+#### Note templates
+
+Metadata values can be referenced in `--note` using `${Key}` placeholders.
+This lets you keep values in one place and reuse them in the note text:
+
+```bash
+invoice generate --from "Dream, Inc." --to "Imagine, Inc." \
+    --item "Rubber Duck" --quantity 2 --rate 25 \
+    --metadata "Bank=HSBC" \
+    --metadata "IBAN=DE89 3704 0044 0532 0130 00" \
+    --note "Please transfer to ${Bank}, IBAN: ${IBAN}"
+```
+
+The note renders as: *Please transfer to HSBC, IBAN: DE89 3704 0044 0532 0130 00*
+
 ### Custom Templates
 
 If you would like a custom invoice template for your business or company, please
@@ -103,6 +148,45 @@ go install github.com/maaslalani/invoice@main
 ```
 
 Or download a binary from the [releases](https://github.com/maaslalani/invoice/releases).
+
+### Docker
+
+Build the image:
+
+```bash
+docker build -t invoice .
+```
+
+Run with Docker:
+
+```bash
+docker run --rm -v "$PWD:/out" invoice generate \
+    --from "Dream, Inc." --to "Imagine, Inc." \
+    --item "Rubber Duck" --quantity 2 --rate 25 \
+    --output /out/invoice.pdf
+```
+
+The `-v "$PWD:/out"` mount makes the generated PDF available on your host.
+
+## Development
+
+### Test
+
+```bash
+go test ./...
+```
+
+### Build
+
+```bash
+go build
+```
+
+### Lint
+
+```bash
+golangci-lint run
+```
 
 ## License
 
