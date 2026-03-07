@@ -23,12 +23,17 @@ const (
 	totalLabel    = "Total"
 )
 
-func writeLogo(pdf *gopdf.GoPdf, logo string, from string) {
+func writeLogo(pdf *gopdf.GoPdf, logo string, from string) error {
 	if logo != "" {
-		width, height := getImageDimension(logo)
+		width, height, err := getImageDimension(logo)
+		if err != nil {
+			return fmt.Errorf("unable to read logo %s: %w", logo, err)
+		}
 		scaledWidth := 100.0
 		scaledHeight := float64(height) * scaledWidth / float64(width)
-		_ = pdf.Image(logo, pdf.GetX(), pdf.GetY(), &gopdf.Rect{W: scaledWidth, H: scaledHeight})
+		if err := pdf.Image(logo, pdf.GetX(), pdf.GetY(), &gopdf.Rect{W: scaledWidth, H: scaledHeight}); err != nil {
+			return err
+		}
 		pdf.Br(scaledHeight + 24)
 	}
 	pdf.SetTextColor(55, 55, 55)
@@ -38,12 +43,20 @@ func writeLogo(pdf *gopdf.GoPdf, logo string, from string) {
 
 	for i := 0; i < len(fromLines); i++ {
 		if i == 0 {
-			_ = pdf.SetFont("Inter", "", 12)
-			_ = pdf.Cell(nil, fromLines[i])
+			if err := pdf.SetFont("Inter", "", 12); err != nil {
+				return err
+			}
+			if err := pdf.Cell(nil, fromLines[i]); err != nil {
+				return err
+			}
 			pdf.Br(18)
 		} else {
-			_ = pdf.SetFont("Inter", "", 10)
-			_ = pdf.Cell(nil, fromLines[i])
+			if err := pdf.SetFont("Inter", "", 10); err != nil {
+				return err
+			}
+			if err := pdf.Cell(nil, fromLines[i]); err != nil {
+				return err
+			}
 			pdf.Br(15)
 		}
 	}
@@ -51,40 +64,69 @@ func writeLogo(pdf *gopdf.GoPdf, logo string, from string) {
 	pdf.SetStrokeColor(225, 225, 225)
 	pdf.Line(pdf.GetX(), pdf.GetY(), 260, pdf.GetY())
 	pdf.Br(36)
+	return nil
 }
 
-func writeTitle(pdf *gopdf.GoPdf, title, id, date string) {
-	_ = pdf.SetFont("Inter-Bold", "", 24)
+func writeTitle(pdf *gopdf.GoPdf, title, id, date string) error {
+	if err := pdf.SetFont("Inter-Bold", "", 24); err != nil {
+		return err
+	}
 	pdf.SetTextColor(0, 0, 0)
-	_ = pdf.Cell(nil, title)
+	if err := pdf.Cell(nil, title); err != nil {
+		return err
+	}
 	pdf.Br(36)
-	_ = pdf.SetFont("Inter", "", 12)
+	if err := pdf.SetFont("Inter", "", 12); err != nil {
+		return err
+	}
 	pdf.SetTextColor(100, 100, 100)
-	_ = pdf.Cell(nil, "#")
-	_ = pdf.Cell(nil, id)
+	if err := pdf.Cell(nil, "#"); err != nil {
+		return err
+	}
+	if err := pdf.Cell(nil, id); err != nil {
+		return err
+	}
 	pdf.SetTextColor(150, 150, 150)
-	_ = pdf.Cell(nil, "  ·  ")
+	if err := pdf.Cell(nil, "  ·  "); err != nil {
+		return err
+	}
 	pdf.SetTextColor(100, 100, 100)
-	_ = pdf.Cell(nil, date)
+	if err := pdf.Cell(nil, date); err != nil {
+		return err
+	}
 	pdf.Br(48)
+	return nil
 }
 
-func writeDueDate(pdf *gopdf.GoPdf, due string) {
-	_ = pdf.SetFont("Inter", "", 9)
+func writeDueDate(pdf *gopdf.GoPdf, due string) error {
+	if err := pdf.SetFont("Inter", "", 9); err != nil {
+		return err
+	}
 	pdf.SetTextColor(75, 75, 75)
 	pdf.SetX(rateColumnOffset)
-	_ = pdf.Cell(nil, "Due Date")
+	if err := pdf.Cell(nil, "Due Date"); err != nil {
+		return err
+	}
 	pdf.SetTextColor(0, 0, 0)
-	_ = pdf.SetFontSize(11)
+	if err := pdf.SetFontSize(11); err != nil {
+		return err
+	}
 	pdf.SetX(amountColumnOffset - 15)
-	_ = pdf.Cell(nil, due)
+	if err := pdf.Cell(nil, due); err != nil {
+		return err
+	}
 	pdf.Br(12)
+	return nil
 }
 
-func writeBillTo(pdf *gopdf.GoPdf, to string) {
+func writeBillTo(pdf *gopdf.GoPdf, to string) error {
 	pdf.SetTextColor(75, 75, 75)
-	_ = pdf.SetFont("Inter", "", 9)
-	_ = pdf.Cell(nil, "BILL TO")
+	if err := pdf.SetFont("Inter", "", 9); err != nil {
+		return err
+	}
+	if err := pdf.Cell(nil, "BILL TO"); err != nil {
+		return err
+	}
 	pdf.Br(18)
 	pdf.SetTextColor(75, 75, 75)
 
@@ -93,119 +135,180 @@ func writeBillTo(pdf *gopdf.GoPdf, to string) {
 
 	for i := 0; i < len(toLines); i++ {
 		if i == 0 {
-			_ = pdf.SetFont("Inter", "", 15)
-			_ = pdf.Cell(nil, toLines[i])
+			if err := pdf.SetFont("Inter", "", 15); err != nil {
+				return err
+			}
+			if err := pdf.Cell(nil, toLines[i]); err != nil {
+				return err
+			}
 			pdf.Br(20)
 		} else {
-			_ = pdf.SetFont("Inter", "", 10)
-			_ = pdf.Cell(nil, toLines[i])
+			if err := pdf.SetFont("Inter", "", 10); err != nil {
+				return err
+			}
+			if err := pdf.Cell(nil, toLines[i]); err != nil {
+				return err
+			}
 			pdf.Br(15)
 		}
 	}
 	pdf.Br(64)
+	return nil
 }
 
-func writeHeaderRow(pdf *gopdf.GoPdf) {
-	_ = pdf.SetFont("Inter", "", 9)
+func writeHeaderRow(pdf *gopdf.GoPdf) error {
+	if err := pdf.SetFont("Inter", "", 9); err != nil {
+		return err
+	}
 	pdf.SetTextColor(55, 55, 55)
-	_ = pdf.Cell(nil, "ITEM")
+	if err := pdf.Cell(nil, "ITEM"); err != nil {
+		return err
+	}
 	pdf.SetX(quantityColumnOffset)
-	_ = pdf.Cell(nil, "QTY")
+	if err := pdf.Cell(nil, "QTY"); err != nil {
+		return err
+	}
 	pdf.SetX(rateColumnOffset)
-	_ = pdf.Cell(nil, "RATE")
+	if err := pdf.Cell(nil, "RATE"); err != nil {
+		return err
+	}
 	pdf.SetX(amountColumnOffset)
-	_ = pdf.Cell(nil, "AMOUNT")
+	if err := pdf.Cell(nil, "AMOUNT"); err != nil {
+		return err
+	}
 	pdf.Br(24)
+	return nil
 }
 
-func writeNotes(pdf *gopdf.GoPdf, notes string) {
+func writeNotes(pdf *gopdf.GoPdf, notes string) error {
 	pdf.SetY(600)
 
-	_ = pdf.SetFont("Inter", "", 9)
+	if err := pdf.SetFont("Inter", "", 9); err != nil {
+		return err
+	}
 	pdf.SetTextColor(55, 55, 55)
-	_ = pdf.Cell(nil, "NOTES")
+	if err := pdf.Cell(nil, "NOTES"); err != nil {
+		return err
+	}
 	pdf.Br(18)
-	_ = pdf.SetFont("Inter", "", 9)
+	if err := pdf.SetFont("Inter", "", 9); err != nil {
+		return err
+	}
 	pdf.SetTextColor(0, 0, 0)
 
 	formattedNotes := strings.ReplaceAll(notes, `\n`, "\n")
 	notesLines := strings.Split(formattedNotes, "\n")
 
 	for i := 0; i < len(notesLines); i++ {
-		_ = pdf.Cell(nil, notesLines[i])
+		if err := pdf.Cell(nil, notesLines[i]); err != nil {
+			return err
+		}
 		pdf.Br(15)
 	}
 
 	pdf.Br(48)
+	return nil
 }
-func writeFooter(pdf *gopdf.GoPdf, id string) {
+
+func writeFooter(pdf *gopdf.GoPdf, id string) error {
 	pdf.SetY(800)
 
-	_ = pdf.SetFont("Inter", "", 10)
+	if err := pdf.SetFont("Inter", "", 10); err != nil {
+		return err
+	}
 	pdf.SetTextColor(55, 55, 55)
-	_ = pdf.Cell(nil, id)
+	if err := pdf.Cell(nil, id); err != nil {
+		return err
+	}
 	pdf.SetStrokeColor(225, 225, 225)
 	pdf.Line(pdf.GetX()+10, pdf.GetY()+6, 550, pdf.GetY()+6)
 	pdf.Br(48)
+	return nil
 }
 
-func writeRow(pdf *gopdf.GoPdf, item string, quantity int, rate float64) {
-	_ = pdf.SetFont("Inter", "", 11)
+func writeRow(pdf *gopdf.GoPdf, item string, quantity int, rate float64, currencySymbol string) error {
+	if err := pdf.SetFont("Inter", "", 11); err != nil {
+		return err
+	}
 	pdf.SetTextColor(0, 0, 0)
 
 	total := float64(quantity) * rate
 	amount := strconv.FormatFloat(total, 'f', 2, 64)
 
-	_ = pdf.Cell(nil, item)
+	if err := pdf.Cell(nil, item); err != nil {
+		return err
+	}
 	pdf.SetX(quantityColumnOffset)
-	_ = pdf.Cell(nil, strconv.Itoa(quantity))
+	if err := pdf.Cell(nil, strconv.Itoa(quantity)); err != nil {
+		return err
+	}
 	pdf.SetX(rateColumnOffset)
-	_ = pdf.Cell(nil, currencySymbols[file.Currency]+strconv.FormatFloat(rate, 'f', 2, 64))
+	if err := pdf.Cell(nil, currencySymbol+strconv.FormatFloat(rate, 'f', 2, 64)); err != nil {
+		return err
+	}
 	pdf.SetX(amountColumnOffset)
-	_ = pdf.Cell(nil, currencySymbols[file.Currency]+amount)
+	if err := pdf.Cell(nil, currencySymbol+amount); err != nil {
+		return err
+	}
 	pdf.Br(24)
+	return nil
 }
 
-func writeTotals(pdf *gopdf.GoPdf, subtotal float64, tax float64, discount float64) {
+func writeTotals(pdf *gopdf.GoPdf, subtotal float64, tax float64, discount float64, currencySymbol string) error {
 	pdf.SetY(600)
 
-	writeTotal(pdf, subtotalLabel, subtotal)
+	if err := writeTotal(pdf, subtotalLabel, subtotal, currencySymbol); err != nil {
+		return err
+	}
 	if tax > 0 {
-		writeTotal(pdf, taxLabel, tax)
+		if err := writeTotal(pdf, taxLabel, tax, currencySymbol); err != nil {
+			return err
+		}
 	}
 	if discount > 0 {
-		writeTotal(pdf, discountLabel, discount)
+		if err := writeTotal(pdf, discountLabel, discount, currencySymbol); err != nil {
+			return err
+		}
 	}
-	writeTotal(pdf, totalLabel, subtotal+tax-discount)
+	return writeTotal(pdf, totalLabel, subtotal+tax-discount, currencySymbol)
 }
 
-func writeTotal(pdf *gopdf.GoPdf, label string, total float64) {
-	_ = pdf.SetFont("Inter", "", 9)
+func writeTotal(pdf *gopdf.GoPdf, label string, total float64, currencySymbol string) error {
+	if err := pdf.SetFont("Inter", "", 9); err != nil {
+		return err
+	}
 	pdf.SetTextColor(75, 75, 75)
 	pdf.SetX(rateColumnOffset)
-	_ = pdf.Cell(nil, label)
+	if err := pdf.Cell(nil, label); err != nil {
+		return err
+	}
 	pdf.SetTextColor(0, 0, 0)
-	_ = pdf.SetFontSize(12)
+	if err := pdf.SetFontSize(12); err != nil {
+		return err
+	}
 	pdf.SetX(amountColumnOffset - 15)
 	if label == totalLabel {
-		_ = pdf.SetFont("Inter-Bold", "", 11.5)
+		if err := pdf.SetFont("Inter-Bold", "", 11.5); err != nil {
+			return err
+		}
 	}
-	_ = pdf.Cell(nil, currencySymbols[file.Currency]+strconv.FormatFloat(total, 'f', 2, 64))
+	if err := pdf.Cell(nil, currencySymbol+strconv.FormatFloat(total, 'f', 2, 64)); err != nil {
+		return err
+	}
 	pdf.Br(24)
+	return nil
 }
 
-func getImageDimension(imagePath string) (int, int) {
-	file, err := os.Open(imagePath)
+func getImageDimension(imagePath string) (int, int, error) {
+	f, err := os.Open(imagePath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-		return 0, 0
+		return 0, 0, err
 	}
-	defer file.Close()
+	defer f.Close()
 
-	image, _, err := image.DecodeConfig(file)
+	img, _, err := image.DecodeConfig(f)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s: %v\n", imagePath, err)
-		return 0, 0
+		return 0, 0, err
 	}
-	return image.Width, image.Height
+	return img.Width, img.Height, nil
 }

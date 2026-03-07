@@ -5,5 +5,6 @@
 
   packages = [
     pkgs.golangci-lint
+    pkgs.poppler-utils
   ];
 }

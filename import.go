@@ -13,7 +13,7 @@ import (
 func importData(path string, structure *Invoice, flags *pflag.FlagSet) error {
 	fileText, err := os.ReadFile(path)
 	if err != nil {
-		return fmt.Errorf("unable to read file")
+		return fmt.Errorf("unable to read file %s: %w", path, err)
 	}
 
 	var b []byte
@@ -51,12 +51,12 @@ func importData(path string, structure *Invoice, flags *pflag.FlagSet) error {
 
 func importJson(text []byte, structure *Invoice) error {
 	if !json.Valid(text) {
-		return fmt.Errorf("json file not correctly formatted")
+		return fmt.Errorf("invalid json syntax")
 	}
 
 	err := json.Unmarshal(text, structure)
 	if err != nil {
-		return fmt.Errorf("json file not correctly formatted")
+		return fmt.Errorf("json does not match invoice schema: %w", err)
 	}
 
 	return nil
@@ -65,7 +65,7 @@ func importJson(text []byte, structure *Invoice) error {
 func importYaml(text []byte, structure *Invoice) error {
 	err := yaml.Unmarshal(text, structure)
 	if err != nil {
-		return fmt.Errorf("yaml file not correctly formatted")
+		return fmt.Errorf("invalid yaml: %w", err)
 	}
 
 	return nil

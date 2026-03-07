@@ -10,7 +10,10 @@ import (
 )
 
 func TestGetImageDimensionMissing(t *testing.T) {
-	w, h := getImageDimension("/nonexistent/path/image.png")
+	w, h, err := getImageDimension("/nonexistent/path/image.png")
+	if err == nil {
+		t.Error("expected error for missing file")
+	}
 	if w != 0 || h != 0 {
 		t.Errorf("got (%d, %d), want (0, 0) for missing file", w, h)
 	}
@@ -33,7 +36,10 @@ func TestGetImageDimensionValid(t *testing.T) {
 	}
 	f.Close()
 
-	w, h := getImageDimension(imgPath)
+	w, h, err2 := getImageDimension(imgPath)
+	if err2 != nil {
+		t.Fatalf("unexpected error: %v", err2)
+	}
 	if w != 80 || h != 40 {
 		t.Errorf("got (%d, %d), want (80, 40)", w, h)
 	}

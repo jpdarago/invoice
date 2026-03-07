@@ -124,10 +124,19 @@ var generateCmd = &cobra.Command{
 			return err
 		}
 
-		writeLogo(&pdf, file.Logo, file.From)
-		writeTitle(&pdf, file.Title, file.Id, file.Date)
-		writeBillTo(&pdf, file.To)
-		writeHeaderRow(&pdf)
+		if err := writeLogo(&pdf, file.Logo, file.From); err != nil {
+			return err
+		}
+		if err := writeTitle(&pdf, file.Title, file.Id, file.Date); err != nil {
+			return err
+		}
+		if err := writeBillTo(&pdf, file.To); err != nil {
+			return err
+		}
+		if err := writeHeaderRow(&pdf); err != nil {
+			return err
+		}
+		currencySymbol := currencySymbols[file.Currency]
 		subtotal := 0.0
 		for i := range file.Items {
 			q := 1
@@ -140,21 +149,30 @@ var generateCmd = &cobra.Command{
 				r = file.Rates[i]
 			}
 
-			writeRow(&pdf, file.Items[i], q, r)
+			if err := writeRow(&pdf, file.Items[i], q, r, currencySymbol); err != nil {
+				return err
+			}
 			subtotal += float64(q) * r
 		}
 		if file.Note != "" {
-			writeNotes(&pdf, file.Note)
+			if err := writeNotes(&pdf, file.Note); err != nil {
+				return err
+			}
 		}
-		writeTotals(&pdf, subtotal, subtotal*file.Tax, subtotal*file.Discount)
-		if file.Due != "" {
-			writeDueDate(&pdf, file.Due)
-		}
-		writeFooter(&pdf, file.Id)
-		output = strings.TrimSuffix(output, ".pdf") + ".pdf"
-		err = pdf.WritePdf(output)
-		if err != nil {
+		if err := writeTotals(&pdf, subtotal, subtotal*file.Tax, subtotal*file.Discount, currencySymbol); err != nil {
 			return err
+		}
+		if file.Due != "" {
+			if err := writeDueDate(&pdf, file.Due); err != nil {
+				return err
+			}
+		}
+		if err := writeFooter(&pdf, file.Id); err != nil {
+			return err
+		}
+		output = strings.TrimSuffix(output, ".pdf") + ".pdf"
+		if err := pdf.WritePdf(output); err != nil {
+			return fmt.Errorf("unable to write %s: %w", output, err)
 		}
 
 		fmt.Printf("Generated %s\n", output)

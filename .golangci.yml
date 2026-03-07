@@ -13,12 +13,6 @@ linters:
     errcheck:
       exclude-functions:
         - (*os.File).Close
-  exclusions:
-    rules:
-      - path: pdf\.go
-        linters:
-          - errcheck
-        text: "gopdf\\.(GoPdf)\\.(Cell|SetFont|SetFontSize|Image)"
 
 formatters:
   enable:
