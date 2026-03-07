@@ -14,7 +14,11 @@ go install github.com/maaslalani/invoice@main  # install
 ./invoice generate --from "Acme" --to "Client" --item "Widget" --quantity 2 --rate 50
 ```
 
-There are no tests in this project.
+## Test
+
+```bash
+go test ./...
+```
 
 ## Lint
 
