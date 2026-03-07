@@ -118,9 +118,13 @@ var generateCmd = &cobra.Command{
 			}
 			for _, entry := range metadata {
 				key, value, found := strings.Cut(entry, "=")
-				if found {
-					file.Metadata[key] = value
+				if !found {
+					return fmt.Errorf("invalid metadata entry %q: expected key=value format", entry)
 				}
+				if key == "" {
+					return fmt.Errorf("invalid metadata entry %q: key cannot be empty", entry)
+				}
+				file.Metadata[key] = value
 			}
 		}
 
