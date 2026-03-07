@@ -6,6 +6,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 CLI tool that generates PDF invoices from command-line flags, environment variables, or JSON/YAML config files. Written in Go (~470 lines across 4 source files), all in the `main` package.
 
+## Dev Environment
+
+This project uses [devenv](https://devenv.sh/) with Nix. Before running any commands, activate the shell:
+
+```bash
+devenv shell                          # or use direnv (automatic with .envrc)
+```
+
 ## Build & Run
 
 ```bash

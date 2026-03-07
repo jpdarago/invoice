@@ -36,7 +36,8 @@ type Invoice struct {
 	Discount float64 `json:"discount" yaml:"discount"`
 	Currency string  `json:"currency" yaml:"currency"`
 
-	Note string `json:"note" yaml:"note"`
+	Note     string            `json:"note" yaml:"note"`
+	Metadata map[string]string `json:"metadata,omitempty" yaml:"metadata,omitempty"`
 }
 
 func DefaultInvoice() Invoice {
@@ -59,6 +60,7 @@ func DefaultInvoice() Invoice {
 var (
 	importPath     string
 	output         string
+	metadata       []string
 	file           = Invoice{}
 	defaultInvoice = DefaultInvoice()
 )
@@ -85,6 +87,7 @@ func init() {
 	generateCmd.Flags().StringVarP(&file.Currency, "currency", "c", defaultInvoice.Currency, "Currency")
 
 	generateCmd.Flags().StringVarP(&file.Note, "note", "n", "", "Note")
+	generateCmd.Flags().StringSliceVarP(&metadata, "metadata", "m", nil, "Metadata key=value pairs")
 	generateCmd.Flags().StringVarP(&output, "output", "o", "invoice.pdf", "Output file (.pdf)")
 
 }
@@ -106,6 +109,24 @@ var generateCmd = &cobra.Command{
 			if err != nil {
 				return err
 			}
+		}
+
+		// Parse CLI metadata flags into file.Metadata (merging on top of imported values)
+		if len(metadata) > 0 {
+			if file.Metadata == nil {
+				file.Metadata = make(map[string]string)
+			}
+			for _, entry := range metadata {
+				key, value, found := strings.Cut(entry, "=")
+				if found {
+					file.Metadata[key] = value
+				}
+			}
+		}
+
+		// Expand ${Key} placeholders in note using metadata values
+		for k, v := range file.Metadata {
+			file.Note = strings.ReplaceAll(file.Note, "${"+k+"}", v)
 		}
 
 		pdf := gopdf.GoPdf{}
@@ -156,6 +177,11 @@ var generateCmd = &cobra.Command{
 		}
 		if file.Note != "" {
 			if err := writeNotes(&pdf, file.Note); err != nil {
+				return err
+			}
+		}
+		if len(file.Metadata) > 0 {
+			if err := writeMetadata(&pdf, file.Metadata); err != nil {
 				return err
 			}
 		}

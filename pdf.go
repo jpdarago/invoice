@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -207,6 +208,45 @@ func writeNotes(pdf *gopdf.GoPdf, notes string) error {
 	}
 
 	pdf.Br(48)
+	return nil
+}
+
+func writeMetadata(pdf *gopdf.GoPdf, metadata map[string]string) error {
+	pdf.SetY(690)
+
+	if err := pdf.SetFont("Inter", "", 9); err != nil {
+		return err
+	}
+	pdf.SetTextColor(55, 55, 55)
+	if err := pdf.Cell(nil, "DETAILS"); err != nil {
+		return err
+	}
+	pdf.Br(18)
+
+	keys := make([]string, 0, len(metadata))
+	for k := range metadata {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	for _, k := range keys {
+		if err := pdf.SetFont("Inter-Bold", "", 9); err != nil {
+			return err
+		}
+		pdf.SetTextColor(55, 55, 55)
+		if err := pdf.Cell(nil, k+": "); err != nil {
+			return err
+		}
+		if err := pdf.SetFont("Inter", "", 9); err != nil {
+			return err
+		}
+		pdf.SetTextColor(0, 0, 0)
+		if err := pdf.Cell(nil, metadata[k]); err != nil {
+			return err
+		}
+		pdf.Br(15)
+	}
+
 	return nil
 }
 
