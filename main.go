@@ -2,7 +2,6 @@ package main
 
 import (
 	_ "embed"
-	"flag"
 	"fmt"
 	"log"
 	"strings"
@@ -88,7 +87,6 @@ func init() {
 	generateCmd.Flags().StringVarP(&file.Note, "note", "n", "", "Note")
 	generateCmd.Flags().StringVarP(&output, "output", "o", "invoice.pdf", "Output file (.pdf)")
 
-	flag.Parse()
 }
 
 var rootCmd = &cobra.Command{

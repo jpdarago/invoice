@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 
@@ -37,17 +36,17 @@ func importData(path string, structure *Invoice, flags *pflag.FlagSet) error {
 		return fmt.Errorf("unsupported file type")
 	}
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	for _, bytes := range byteBuffer {
 		err = importJson(bytes, structure)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 	}
 
-	return err
+	return nil
 }
 
 func importJson(text []byte, structure *Invoice) error {

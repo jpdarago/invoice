@@ -1,0 +1,25 @@
+version: "2"
+
+linters:
+  default: none
+  enable:
+    - errcheck
+    - govet
+    - staticcheck
+    - ineffassign
+    - unused
+    - misspell
+  settings:
+    errcheck:
+      exclude-functions:
+        - (*os.File).Close
+  exclusions:
+    rules:
+      - path: pdf\.go
+        linters:
+          - errcheck
+        text: "gopdf\\.(GoPdf)\\.(Cell|SetFont|SetFontSize|Image)"
+
+formatters:
+  enable:
+    - gofmt

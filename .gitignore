@@ -4,3 +4,7 @@
 *.yml
 *.sh
 !.github/workflows/*.yml
+!.golangci.yml
+!devenv.yaml
+.devenv/
+invoice
