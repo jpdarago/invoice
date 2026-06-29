@@ -136,3 +136,80 @@ func TestImportData(t *testing.T) {
 		t.Errorf("Items = %v, want [Consulting]", inv.Items)
 	}
 }
+
+// writeTempJSON writes content to a temp .json file and returns its path.
+func writeTempJSON(t *testing.T, content string) string {
+	t.Helper()
+	p := filepath.Join(t.TempDir(), "test.json")
+	if err := os.WriteFile(p, []byte(content), 0644); err != nil {
+		t.Fatal(err)
+	}
+	return p
+}
+
+// Regression: a slice-typed flag (e.g. --metadata) set alongside --import must
+// not produce "invalid json syntax". metadata is merged separately, so it
+// should simply be ignored by importData.
+func TestImportDataWithSliceFlag(t *testing.T) {
+	path := writeTempJSON(t, `{"id":"INV-1","from":"Acme"}`)
+
+	flags := pflag.NewFlagSet("test", pflag.ContinueOnError)
+	flags.StringSlice("metadata", nil, "")
+	flags.StringSlice("item", nil, "")
+	if err := flags.Set("metadata", "ADDRESS=bc1qexample"); err != nil {
+		t.Fatal(err)
+	}
+
+	inv := &Invoice{}
+	if err := importData(path, inv, flags); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if inv.Id != "INV-1" {
+		t.Errorf("Id = %q, want INV-1", inv.Id)
+	}
+}
+
+// A string flag whose value contains JSON-significant characters must override
+// correctly without breaking serialization.
+func TestImportDataOverrideEscaping(t *testing.T) {
+	path := writeTempJSON(t, `{"note":"from file"}`)
+
+	flags := pflag.NewFlagSet("test", pflag.ContinueOnError)
+	flags.String("note", "", "")
+	tricky := `pay to "Acme" \ Inc.`
+	if err := flags.Set("note", tricky); err != nil {
+		t.Fatal(err)
+	}
+
+	inv := &Invoice{}
+	if err := importData(path, inv, flags); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if inv.Note != tricky {
+		t.Errorf("Note = %q, want %q", inv.Note, tricky)
+	}
+}
+
+// An explicitly-set --item must override the imported items (previously the
+// merge keyed by flag name "item" instead of the JSON field "items", silently
+// dropping the override).
+func TestImportDataItemOverride(t *testing.T) {
+	path := writeTempJSON(t, `{"items":["from file"]}`)
+
+	flags := pflag.NewFlagSet("test", pflag.ContinueOnError)
+	flags.StringSlice("item", nil, "")
+	if err := flags.Set("item", "Override A"); err != nil {
+		t.Fatal(err)
+	}
+	if err := flags.Set("item", "Override B"); err != nil {
+		t.Fatal(err)
+	}
+
+	inv := &Invoice{}
+	if err := importData(path, inv, flags); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(inv.Items) != 2 || inv.Items[0] != "Override A" || inv.Items[1] != "Override B" {
+		t.Errorf("Items = %v, want [Override A Override B]", inv.Items)
+	}
+}
