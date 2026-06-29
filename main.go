@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 	"time"
 
@@ -11,6 +12,21 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
+
+// notePlaceholder matches ${KEY} and bare $KEY references in note text.
+var notePlaceholder = regexp.MustCompile(`\$\{(\w+)\}|\$(\w+)`)
+
+// expandNote replaces ${KEY} and $KEY placeholders in note with the matching
+// metadata value. Placeholders with no matching key are left unchanged.
+func expandNote(note string, metadata map[string]string) string {
+	return notePlaceholder.ReplaceAllStringFunc(note, func(match string) string {
+		key := strings.Trim(match, "${}")
+		if v, ok := metadata[key]; ok {
+			return v
+		}
+		return match
+	})
+}
 
 //go:embed "Inter/Inter Variable/Inter.ttf"
 var interFont []byte
@@ -132,10 +148,8 @@ var generateCmd = &cobra.Command{
 			}
 		}
 
-		// Expand ${Key} placeholders in note using metadata values
-		for k, v := range file.Metadata {
-			file.Note = strings.ReplaceAll(file.Note, "${"+k+"}", v)
-		}
+		// Expand ${Key} and $Key placeholders in note using metadata values.
+		file.Note = expandNote(file.Note, file.Metadata)
 
 		pdf := gopdf.GoPdf{}
 		pdf.Start(gopdf.Config{

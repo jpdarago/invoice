@@ -8,6 +8,27 @@ import (
 	"testing"
 )
 
+func TestExpandNote(t *testing.T) {
+	meta := map[string]string{"ADDRESS": "bc1qexample", "NAME": "Acme"}
+	cases := []struct {
+		name, in, want string
+	}{
+		{"braces", "pay: ${ADDRESS}", "pay: bc1qexample"},
+		{"bare", "pay: $ADDRESS", "pay: bc1qexample"},
+		{"mixed", "$NAME at ${ADDRESS}", "Acme at bc1qexample"},
+		{"unknown bare left verbatim", "cost $50 now", "cost $50 now"},
+		{"unknown key left verbatim", "ref ${MISSING}", "ref ${MISSING}"},
+		{"no placeholders", "plain text", "plain text"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			if got := expandNote(c.in, meta); got != c.want {
+				t.Errorf("expandNote(%q) = %q, want %q", c.in, got, c.want)
+			}
+		})
+	}
+}
+
 func TestDefaultInvoice(t *testing.T) {
 	inv := DefaultInvoice()
 
