@@ -1,31 +1,40 @@
-name: goreleaser
+name: Release
 
 on:
   push:
     tags:
-      - '*'
+      - "v*"
 
 permissions:
   contents: write
-  # packages: write
-  # issues: write
+  # Required for cosign keyless signing via GitHub OIDC.
+  id-token: write
 
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - run: git fetch --force --tags
-      - uses: actions/setup-go@v3
+
+      - uses: actions/setup-go@v5
         with:
-          go-version: '>=1.19.3'
+          go-version-file: go.mod
           cache: true
-      - uses: goreleaser/goreleaser-action@v2
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v6
         with:
           distribution: goreleaser
-          version: latest
-          args: release --rm-dist
+          version: "~> v2"
+          args: release --clean
         env:
+          # Default token: creates the GitHub Release on this repo.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # PAT with contents:write on jpdarago/homebrew-tap so the
+          # generated formula can be pushed cross-repo.
+          HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}

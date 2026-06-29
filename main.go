@@ -92,10 +92,14 @@ func init() {
 
 }
 
+// version is injected at release time via -ldflags by GoReleaser.
+var version = "dev"
+
 var rootCmd = &cobra.Command{
-	Use:   "invoice",
-	Short: "Invoice generates invoices from the command line.",
-	Long:  `Invoice generates invoices from the command line.`,
+	Use:     "invoice",
+	Short:   "Invoice generates invoices from the command line.",
+	Long:    `Invoice generates invoices from the command line.`,
+	Version: version,
 }
 
 var generateCmd = &cobra.Command{

@@ -6,5 +6,6 @@
 !.github/workflows/*.yml
 !.golangci.yml
 !devenv.yaml
+!.goreleaser.yaml
 .devenv/
 invoice

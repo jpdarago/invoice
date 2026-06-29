@@ -124,30 +124,42 @@ reach out via:
 
 ## Installation
 
-<!--
+### Homebrew (macOS / Linux)
 
-Use a package manager:
-
-```bash
-# macOS
-brew install invoice
-
-# Arch
-yay -S invoice
-
-# Nix
-nix-env -iA nixpkgs.invoice
+```sh
+brew install jpdarago/tap/invoice
 ```
 
--->
+No Go toolchain required — this installs a prebuilt, signed binary.
 
-Install with Go:
+### From source
 
 ```sh
 go install github.com/maaslalani/invoice@main
 ```
 
-Or download a binary from the [releases](https://github.com/maaslalani/invoice/releases).
+Or download a binary from the [releases](https://github.com/jpdarago/invoice/releases).
+
+### Verifying release signatures
+
+Release artifacts are signed with [cosign](https://github.com/sigstore/cosign)
+using keyless signing (GitHub OIDC + the Sigstore transparency log) — there is
+no key to trust, only the identity of the release workflow. To verify a
+download:
+
+```sh
+# Download checksums.txt, checksums.txt.sig, checksums.txt.pem from the release,
+# then:
+cosign verify-blob \
+  --certificate checksums.txt.pem \
+  --signature checksums.txt.sig \
+  --certificate-identity-regexp 'https://github.com/jpdarago/invoice/.*' \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  checksums.txt
+
+# Then confirm your binary's archive matches a line in checksums.txt:
+sha256sum -c checksums.txt --ignore-missing
+```
 
 ### Docker
 

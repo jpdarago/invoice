@@ -1,0 +1,85 @@
+# GoReleaser configuration for invoice.
+# Docs: https://goreleaser.com
+version: 2
+
+project_name: invoice
+
+before:
+  hooks:
+    - go mod download
+
+builds:
+  - id: invoice
+    binary: invoice
+    main: .
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - linux
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X main.version={{ .Version }}
+
+archives:
+  - id: invoice
+    formats: [tar.gz]
+    name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}
+    files:
+      - README.md
+      - LICENSE
+
+checksum:
+  name_template: checksums.txt
+
+# Keyless signing of the checksums file with cosign (Sigstore). Uses GitHub's
+# OIDC identity, so there is no private key to manage; the signing event is
+# recorded in the public Rekor transparency log. Requires `id-token: write`
+# permission and cosign installed in the release workflow.
+signs:
+  - cmd: cosign
+    signature: "${artifact}.sig"
+    certificate: "${artifact}.pem"
+    args:
+      - sign-blob
+      - "--output-signature=${signature}"
+      - "--output-certificate=${certificate}"
+      - "${artifact}"
+      - "--yes"
+    artifacts: checksum
+    output: true
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+      - Merge pull request
+      - Merge branch
+
+brews:
+  - name: invoice
+    repository:
+      owner: jpdarago
+      name: homebrew-tap
+      branch: main
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    directory: Formula
+    homepage: "https://github.com/jpdarago/invoice"
+    description: "Command line invoice generator"
+    license: "MIT"
+    commit_author:
+      name: goreleaserbot
+      email: goreleaserbot@users.noreply.github.com
+    test: |
+      system "#{bin}/invoice", "--version"
+
+release:
+  draft: false
+  prerelease: auto
