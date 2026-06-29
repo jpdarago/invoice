@@ -130,7 +130,7 @@ reach out via:
 brew install jpdarago/tap/invoice
 ```
 
-No Go toolchain required — this installs a prebuilt, signed binary.
+No Go toolchain required — this installs a prebuilt binary.
 
 ### From source
 
@@ -140,26 +140,18 @@ go install github.com/maaslalani/invoice@main
 
 Or download a binary from the [releases](https://github.com/jpdarago/invoice/releases).
 
-### Verifying release signatures
+### Verifying a release
 
-Release artifacts are signed with [cosign](https://github.com/sigstore/cosign)
-using keyless signing (GitHub OIDC + the Sigstore transparency log) — there is
-no key to trust, only the identity of the release workflow. To verify a
-download:
+Each release tag is GPG-signed, so you can confirm it came from the maintainer:
 
 ```sh
-# Download checksums.txt, checksums.txt.sig, checksums.txt.pem from the release,
-# then:
-cosign verify-blob \
-  --certificate checksums.txt.pem \
-  --signature checksums.txt.sig \
-  --certificate-identity-regexp 'https://github.com/jpdarago/invoice/.*' \
-  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-  checksums.txt
-
-# Then confirm your binary's archive matches a line in checksums.txt:
-sha256sum -c checksums.txt --ignore-missing
+git clone https://github.com/jpdarago/invoice
+cd invoice
+git verify-tag v1.0.0    # replace with the release tag
 ```
+
+GitHub also displays such tags as "Verified". Homebrew independently verifies
+the SHA-256 of every downloaded archive against the formula over HTTPS.
 
 ### Docker
 

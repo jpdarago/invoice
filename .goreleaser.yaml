@@ -36,22 +36,9 @@ archives:
 checksum:
   name_template: checksums.txt
 
-# Keyless signing of the checksums file with cosign (Sigstore). Uses GitHub's
-# OIDC identity, so there is no private key to manage; the signing event is
-# recorded in the public Rekor transparency log. Requires `id-token: write`
-# permission and cosign installed in the release workflow.
-signs:
-  - cmd: cosign
-    signature: "${artifact}.sig"
-    certificate: "${artifact}.pem"
-    args:
-      - sign-blob
-      - "--output-signature=${signature}"
-      - "--output-certificate=${certificate}"
-      - "${artifact}"
-      - "--yes"
-    artifacts: checksum
-    output: true
+# Releases are authenticated by signing the git tag with GPG locally
+# (`git tag -s`); GitHub marks the release "Verified". GoReleaser itself does
+# not sign artifacts.
 
 changelog:
   sort: asc
